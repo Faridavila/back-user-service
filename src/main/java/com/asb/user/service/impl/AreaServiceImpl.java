@@ -141,22 +141,14 @@ public class AreaServiceImpl implements IAreaService {
     @Override
     public Page<AreaGetAllDto> searchCustom(Map<String, String> customQuery) {
         String orders = "ASC";
-        String sortBy = "id";
+        String sortBy = "id";  // Default
         int page = 0;
         int size = 5;
-        Long id = null;
-        String description = null;
         String status = Constants.ACTIVE_STATUS;
+        String id = null;
+        String description = null;
 
-        if (customQuery.containsKey("id")) {
-            id = Long.valueOf(customQuery.get("id"));
-        }
-        if (customQuery.containsKey("description")) {
-            description = customQuery.get("description");
-        }
-        if (customQuery.containsKey("status")) {
-            status = customQuery.get("status");
-        }
+        // Extraer parámetros de la consulta personalizada
         if (customQuery.containsKey("orders")) {
             orders = customQuery.get("orders");
         }
@@ -169,14 +161,27 @@ public class AreaServiceImpl implements IAreaService {
         if (customQuery.containsKey("size")) {
             size = Integer.parseInt(customQuery.get("size"));
         }
+        if (customQuery.containsKey("status")) {
+            status = customQuery.get("status");
+        }
+        if (customQuery.containsKey("id") && !customQuery.get("id").isEmpty()) {
+            id = "%" + customQuery.get("id") + "%";  // Convertir id a String con '%'
+        }
+        if (customQuery.containsKey("description")) {
+            description = "%" + customQuery.get("description") + "%";  // Hacer búsqueda parcial para descripción
+        }
 
+        // Configurar la dirección del orden y la paginación
         Sort.Direction direction = Sort.Direction.fromString(orders);
-        Pageable pagingSort = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pagingSort = PageRequest.of(page, size, sort);
 
-        return mapPageAreaDto(
-                areaRepository.findByIdOrDescriptionContainingIgnoreCaseAndStatus(
-                        id, description, status, pagingSort), pagingSort);
+        // Llamar al repositorio con los filtros y devolver el resultado mapeado
+        Page<AreaGetAllDto> responsivePage = areaRepository.searchFiltered(id, description, status, pagingSort);
+
+        return responsivePage;
     }
+
 
     private AreaDto mapAreaDto(EntityArea entityArea) {
         AreaDto areaDto = new AreaDto();
@@ -184,15 +189,15 @@ public class AreaServiceImpl implements IAreaService {
         return areaDto;
     }
 
-    private Page<AreaGetAllDto> mapPageAreaDto(Page<EntityArea> entityPage, Pageable pagingSort) {
-        int totalElements = (int) entityPage.getTotalElements();
-        return new PageImpl<>(
-                entityPage.getContent().stream()
-                        .map(area -> AreaGetAllDto.builder()
-                                .id(area.getId())
-                                .description(area.getDescription())
-                                .status(area.getStatus())
-                                .build())
-                        .collect(Collectors.toList()), pagingSort, totalElements);
-    }
+        private Page<AreaGetAllDto> mapPageAreaDto(Page<EntityArea> entityPage, Pageable pagingSort) {
+            int totalElements = (int) entityPage.getTotalElements();
+            return new PageImpl<>(
+                    entityPage.getContent().stream()
+                            .map(area -> AreaGetAllDto.builder()
+                                    .id(area.getId())
+                                    .description(area.getDescription())
+                                    .status(area.getStatus())
+                                    .build())
+                            .collect(Collectors.toList()), pagingSort, totalElements);
+        }
 }

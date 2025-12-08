@@ -3,7 +3,7 @@ package com.asb.user.util;
 public class Constants {
 
     public static String ACTIVE_STATUS = "ACTIVE";
-    public static String PASSWORD_DEFUULT_PREFIX = "app$Gpp";
+    public static String RECOVER_PASSWORD  = "$ladrillera$";
     public static String INACTIVE_STATUS = "INACTIVE";
     public static String FORMAT_DATE_DDMMYYYY = "dd/MM/yyyy";
     public static String FORMAT_DATE_YYYYMMDD = "yyyy-MM-dd";

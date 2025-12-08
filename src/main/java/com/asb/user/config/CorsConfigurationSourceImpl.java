@@ -17,7 +17,6 @@ public class CorsConfigurationSourceImpl implements CorsConfigurationSource {
         corsConfiguration.setAllowedOriginPatterns(List.of("http://localhost:8081"));
         corsConfiguration.setAllowedOriginPatterns(List.of("http://localhost:4000"));
         corsConfiguration.setAllowedOriginPatterns(List.of("http://localhost:5173"));
-        corsConfiguration.setAllowedOriginPatterns(List.of("https://app-frontend-core-finance.onrender.com"));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PUT", "OPTIONS", "PATCH", "DELETE"));
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.setExposedHeaders(List.of("Authorization", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"));

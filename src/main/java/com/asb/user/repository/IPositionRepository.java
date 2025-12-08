@@ -1,5 +1,7 @@
 package com.asb.user.repository;
 
+import com.asb.user.model.dto.PositionGetAllDto;
+import com.asb.user.model.entity.EntityArea;
 import com.asb.user.model.entity.EntityPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,24 +23,13 @@ public interface IPositionRepository extends JpaRepository<EntityPosition, Long>
 
     Page<EntityPosition> findByStatus(String status, Pageable pageable);
 
-
-    @Query(value = "SELECT * FROM position " +
-            "WHERE (:id IS NULL OR CAST(position_id AS CHAR) LIKE CONCAT(:id, '%')) " +
-            "AND (:description IS NULL OR UPPER(description) LIKE UPPER(CONCAT('%', :description, '%'))) " +
-            "AND (:status IS NULL OR UPPER(status) = UPPER(:status) OR status = 'ACTIVE') " +
-            "ORDER BY id ASC", // Cambia de 'id' a 'position_id'
-            countQuery = "SELECT COUNT(*) FROM position " +
-                    "WHERE (:id IS NULL OR CAST(position_id AS CHAR) LIKE CONCAT(:id, '%')) " +
-                    "AND (:description IS NULL OR UPPER(description) LIKE UPPER(CONCAT('%', :description, '%'))) " +
-                    "AND (:status IS NULL OR UPPER(status) = UPPER(:status) OR status = 'ACTIVE')",
-            nativeQuery = true)
-    Page<EntityPosition> findByIdOrDescriptionContainingIgnoreCaseAndStatus(
-            @Param("id") String id,
-            @Param("description") String description,
-            @Param("status") String status,
-            Pageable pageable
-    );
-
-
-
+    @Query(value = "SELECT new com.asb.user.model.dto.PositionGetAllDto(p.id, p.description, p.status) " +
+            "FROM EntityPosition p " +
+            "WHERE (:id IS NULL OR CAST(p.id AS string) LIKE :id) " +
+            "AND (:description IS NULL OR UPPER(p.description) LIKE UPPER(:description)) " +
+            "AND (:status IS NULL OR UPPER(p.status) LIKE UPPER(:status))")
+    Page<PositionGetAllDto> searchFiltered(@Param("id") String id,
+                                           @Param("description") String description,
+                                           @Param("status") String status,
+                                           Pageable pageable);
 }

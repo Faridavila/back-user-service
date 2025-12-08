@@ -28,7 +28,6 @@ app:
     mappings: /back-user-service
   openapi:
     dev-url: http://localhost:9091
-    prod-url: https://ads-dev.is.arqbs.com/api/v1/back-user-service/
 
 springdoc:
   swagger-ui:
