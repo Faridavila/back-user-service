@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.asb.user.service;
 
 import com.asb.user.model.dto.*;
@@ -12,10 +7,6 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 import java.util.Map;
 
-/**
- *
- * @author manuelm
- */
 public interface IUserService {
 
     UserDto findByEmail(String email);

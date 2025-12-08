@@ -11,9 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
-/**
- * @author manuelm
- */
+
 @Service
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class LoginServiceImpl implements ILoginService {

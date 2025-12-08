@@ -9,6 +9,7 @@ import com.asb.user.repository.IPositionRepository;
 import com.asb.user.service.IPositionService;
 import com.asb.user.util.Constants;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.logging.Log;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -137,26 +138,16 @@ public class PositionServiceImpl implements IPositionService {
                         .build())
                 .collect(Collectors.toList());
     }
-
     @Override
     public Page<PositionGetAllDto> searchCustom(Map<String, String> customQuery) {
         String orders = "ASC";
-        String sortBy = "position_id";
+        String sortBy = "id";  // Default
         int page = 0;
         int size = 5;
+        String status = Constants.ACTIVE_STATUS;
         String id = null;
         String description = null;
-        String status = "ACTIVE"; // Predeterminado a "ACTIVE"
 
-        if (customQuery.containsKey("id")) {
-            id = customQuery.get("id");
-        }
-        if (customQuery.containsKey("description")) {
-            description = customQuery.get("description");
-        }
-        if (customQuery.containsKey("status")) {
-            status = customQuery.get("status"); // Si se especifica, se toma el status del customQuery
-        }
         if (customQuery.containsKey("orders")) {
             orders = customQuery.get("orders");
         }
@@ -169,13 +160,23 @@ public class PositionServiceImpl implements IPositionService {
         if (customQuery.containsKey("size")) {
             size = Integer.parseInt(customQuery.get("size"));
         }
+        if (customQuery.containsKey("status")) {
+            status = customQuery.get("status");
+        }
+        if (customQuery.containsKey("id") && !customQuery.get("id").isEmpty()) {
+            id = "%" + customQuery.get("id") + "%";
+        }
+        if (customQuery.containsKey("description")) {
+            description = "%" + customQuery.get("description") + "%";
+        }
 
         Sort.Direction direction = Sort.Direction.fromString(orders);
-        Pageable pagingSort = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pagingSort = PageRequest.of(page, size, sort);
 
-        return mapPagePositionDto(
-                positionRepository.findByIdOrDescriptionContainingIgnoreCaseAndStatus(
-                        id, description, status, pagingSort), pagingSort);
+        Page<PositionGetAllDto> responsivePage = positionRepository.searchFiltered(id, description, status, pagingSort);
+
+        return responsivePage;
     }
 
 

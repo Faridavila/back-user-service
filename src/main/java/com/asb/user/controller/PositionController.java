@@ -3,6 +3,7 @@ package com.asb.user.controller;
 import com.asb.user.model.dto.PositionDto;
 import com.asb.user.model.dto.PositionGetAllDto;
 import com.asb.user.model.dto.PositionSaveAndUpdateDto;
+import com.asb.user.model.entity.EntityPosition;
 import com.asb.user.service.IPositionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

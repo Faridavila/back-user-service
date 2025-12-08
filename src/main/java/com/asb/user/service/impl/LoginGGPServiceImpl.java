@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.asb.user.service.impl;
 
 import com.asb.user.exception.CustomErrorException;
@@ -27,9 +22,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * @author manuelm
- */
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
@@ -41,7 +33,7 @@ public class LoginGGPServiceImpl implements ILoginGGPService {
 
     private final Utils utils;
 
-    private final long EXPIRATION_TIME_LONG = 100_000_000;// 27 Horas
+    private final long EXPIRATION_TIME_LONG = 100_000_000;
 
     @Override
     public LoginOut login(LoginIn loginIn) {

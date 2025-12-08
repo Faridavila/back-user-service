@@ -23,12 +23,11 @@ app:
   version:  @project.version@
   name: @project.name@
   request:
-    prefix:  api
-    version:  v1
+    prefix: api
+    version: v1
     mappings: /back-user-service
   openapi:
     dev-url: http://localhost:9091
-    prod-url: https://ads-dev.is.arqbs.com/api/v1/back-user-service/
 
 springdoc:
   swagger-ui:
@@ -36,3 +35,5 @@ springdoc:
 
   api-docs:
     path: /api/v1/back-user-service/api-docs
+
+

@@ -3,6 +3,7 @@ package com.asb.user.service;
 import com.asb.user.model.dto.PositionDto;
 import com.asb.user.model.dto.PositionGetAllDto;
 import com.asb.user.model.dto.PositionSaveAndUpdateDto;
+import com.asb.user.model.entity.EntityPosition;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

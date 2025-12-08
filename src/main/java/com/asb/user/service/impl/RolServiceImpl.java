@@ -141,22 +141,14 @@ public class RolServiceImpl implements IRolService {
     @Override
     public Page<RolGetAllDto> searchCustom(Map<String, String> customQuery) {
         String orders = "ASC";
-        String sortBy = "id";
+        String sortBy = "id";  // Default
         int page = 0;
         int size = 5;
-        Long id = null;
-        String name = null;
         String status = Constants.ACTIVE_STATUS;
+        String id = null;
+        String name = null;
 
-        if (customQuery.containsKey("id")) {
-            id = Long.valueOf(customQuery.get("id"));
-        }
-        if (customQuery.containsKey("name")) {
-            name = customQuery.get("name");
-        }
-        if (customQuery.containsKey("status")) {
-            status = customQuery.get("status");
-        }
+        // Extraer parámetros de la consulta personalizada
         if (customQuery.containsKey("orders")) {
             orders = customQuery.get("orders");
         }
@@ -169,14 +161,29 @@ public class RolServiceImpl implements IRolService {
         if (customQuery.containsKey("size")) {
             size = Integer.parseInt(customQuery.get("size"));
         }
+        if (customQuery.containsKey("status")) {
+            status = customQuery.get("status");
+        }
+        if (customQuery.containsKey("id") && !customQuery.get("id").isEmpty()) {
+            id = "%" + customQuery.get("id") + "%";  // Convertir id a String con '%'
+        }
+        if (customQuery.containsKey("name")) {
+            name = "%" + customQuery.get("name") + "%";  // Hacer búsqueda parcial para nombre
+        }
 
+        // Configurar la dirección del orden y la paginación
         Sort.Direction direction = Sort.Direction.fromString(orders);
-        Pageable pagingSort = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Sort sort = Sort.by(direction, sortBy);
+        Pageable pagingSort = PageRequest.of(page, size, sort);
 
-        return mapPageRolDto(
-                rolRepository.findByIdOrNameContainingIgnoreCaseAndStatus(
-                        id, name, status, pagingSort), pagingSort);
+        // Llamar al repositorio con los filtros y devolver el resultado mapeado
+        Page<RolGetAllDto> responsivePage = rolRepository.searchFiltered(id, name, status, pagingSort);
+
+        return responsivePage;
     }
+
+
+
 
     private RolDto mapRolDto(EntityRol entityRol) {
         RolDto rolDto = new RolDto();
