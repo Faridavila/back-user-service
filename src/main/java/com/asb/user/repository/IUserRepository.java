@@ -24,19 +24,31 @@ public interface IUserRepository extends JpaRepository<EntityUser, Long> {
 
     public Optional<EntityUser> findByLogin(String login);
 
+
+    @Query("SELECT u FROM EntityUser u WHERE LOWER(:input) IN (LOWER(u.email), LOWER(u.login), LOWER(u.phone))")
+    Optional<EntityUser> findByEmailOrLoginOrPhone(@Param("input") String input);
     @Override
     Page<EntityUser> findAll(Pageable pageable);
 
 
-    @Query(value = "SELECT new com.asb.user.model.dto.GgpUserGetAllDto(u.id, u.name, u.login,u.password, u.email, r.id, r.name, u.status) " +
+    @Query(value = "SELECT new com.asb.user.model.dto.GgpUserGetAllDto(u.id, u.name, u.login,u.password, u.email, u.rolId, r.name, u.positionId, p.description,u.companyId, c.companyName, u.areaId, a.description,u.phone,u.status) " +
             "FROM EntityUser u " +
-            "INNER JOIN u.rol r " +
-            "WHERE u.status = 'ACTIVO'",
-            countQuery = "SELECT COUNT(u) " +
+            "INNER JOIN EntityRol r ON u.rolId = r.id " +
+            "INNER JOIN EntityPosition p ON u.positionId = p.id " +
+            "INNER JOIN EntityCompany c ON u.companyId = c.id " +
+            "INNER JOIN EntityArea a ON u.areaId = a.id " +
+            "WHERE u.status = 'ACTIVE'",
+            countQuery = "SELECT COUNT(*) " +
                     "FROM EntityUser u " +
-                    "INNER JOIN u.rol r " +
-                    "WHERE u.status = 'ACTIVO'")
+                    "INNER JOIN EntityRol r ON u.rolId = r.id " +
+                    "INNER JOIN EntityPosition p ON u.positionId = p.id " +
+                    "INNER JOIN EntityCompany c ON u.companyId = c.id " +
+                    "INNER JOIN EntityArea a ON u.areaId = a.id " +
+                    "WHERE u.status = 'ACTIVE'")
     Page<GgpUserGetAllDto> getStatus(Pageable pageable);
+
+
+
 
     Page<EntityUser> findByStatus(String status, Pageable pageable);
 
@@ -44,10 +56,10 @@ public interface IUserRepository extends JpaRepository<EntityUser, Long> {
 
     @Query(value = "SELECT new com.asb.user.model.dto.UserResponsiveDto(u.id, u.name, u.login, u.password, u.email, r.name, p1.description, c1.companyName, a1.description, u.status) " +
             "FROM EntityUser u " +
-            "INNER JOIN u.rol r " +
-            "LEFT JOIN u.company c1 " +
-            "LEFT JOIN u.position p1 " +
-            "LEFT JOIN u.area a1 " +
+            "INNER JOIN EntityRol r ON u.rolId = r.id " +
+            "INNER JOIN EntityPosition p1 ON u.positionId = p1.id " +
+            "INNER JOIN EntityCompany c1 ON u.companyId = c1.id " +
+            "INNER JOIN EntityArea a1 ON u.areaId = a1.id " +
             "WHERE (:id IS NULL OR CAST(u.id AS string) LIKE :id) " +
             "AND (:name IS NULL OR UPPER(u.name) LIKE UPPER(:name)) " +
             "AND (:email IS NULL OR UPPER(u.email) LIKE UPPER(:email)) " +
@@ -59,10 +71,10 @@ public interface IUserRepository extends JpaRepository<EntityUser, Long> {
             "AND u.status = :status",
             countQuery = "SELECT COUNT(u) " +
                     "FROM EntityUser u " +
-                    "INNER JOIN u.rol r " +
-                    "LEFT JOIN u.company c1 " +
-                    "LEFT JOIN u.position p1 " +
-                    "LEFT JOIN u.area a1 " +
+                    "INNER JOIN EntityRol r ON u.rolId = r.id " +
+                    "INNER JOIN EntityPosition p1 ON u.positionId = p1.id " +
+                    "INNER JOIN EntityCompany c1 ON u.companyId = c1.id " +
+                    "INNER JOIN EntityArea a1 ON u.areaId = a1.id " +
                     "WHERE (:id IS NULL OR CAST(u.id AS string) LIKE :id) " +
                     "AND (:name IS NULL OR UPPER(u.name) LIKE UPPER(:name)) " +
                     "AND (:email IS NULL OR UPPER(u.email) LIKE UPPER(:email)) " +

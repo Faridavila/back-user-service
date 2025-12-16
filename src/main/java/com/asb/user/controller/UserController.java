@@ -55,7 +55,7 @@ public class UserController {
         return ResponseEntity.ok(iUserService.getAll(customQuery));
     }
 
-    @GetMapping("/v1/")
+    @GetMapping("/get-all-page")
     public ResponseEntity<Page<GgpUserGetAllDto>> getAll(@RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "5") int size,
                                                          @RequestParam(defaultValue = "ASC") String orders,
@@ -77,6 +77,7 @@ public class UserController {
     public ResponseEntity<UserDto> update(@PathVariable("userId")Long userId, @RequestBody GgpUserSaveAndUpdateDto user) {
         return ResponseEntity.ok(iUserService.update(userId, user));
     }
+
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<HttpStatus> delete(@PathVariable("id") long id) {

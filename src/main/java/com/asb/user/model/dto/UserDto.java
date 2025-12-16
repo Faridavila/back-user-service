@@ -18,13 +18,16 @@ public class UserDto {
     private String login;
     private String password;
     private String email;
-    private EntityRol rol;
     private Long rolId;
-    private Long companyId;
+    private String rolName;
     private Long positionId;
+    private String positionName;
+    private Long companyId;
+    private String companyName;
     private Long areaId;
+    private String areaName;
+    private String phone;
     private List<AbilityDto> ability;
-
     private Date tokenDateExpired;
     private String token;
     private String status;

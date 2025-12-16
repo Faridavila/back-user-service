@@ -55,53 +55,38 @@ public class UserServiceImpl implements IUserService {
     public UserDto save(GgpUserSaveAndUpdateDto userDto) {
 
         if (userDto.getId() == null) {
-            Optional<EntityUser> objectUserOptional = iRepository.findByEmailOrLogin(userDto.getEmail(), userDto.getLogin());
-            if (objectUserOptional.isPresent()) {
-                throw new CustomErrorException(HttpStatus.BAD_REQUEST, "Correo o Username ya existe");
-            }
-        } else {
-            Boolean objectExists = iRepository.existsById(userDto.getId());
-            if (objectExists) {
-                throw new CustomErrorException(HttpStatus.BAD_REQUEST, "El usuario con este ID ya existe");
+            Optional<EntityUser> existing = iRepository.findByEmailOrLogin(
+                    userDto.getEmail(), userDto.getLogin());
+            if (existing.isPresent()) {
+                throw new CustomErrorException(HttpStatus.BAD_REQUEST,
+                        "Correo o Username ya existe");
             }
         }
 
+        EntityUser entityUser = new EntityUser();
 
-        EntityRol ggpRolRepo = iRolRepository.findById(userDto.getRol())
-                .orElseThrow(() -> new CustomErrorException(HttpStatus.BAD_REQUEST, "Rol no encontrado"));
+        entityUser.setId(userDto.getId() != null ? userDto.getId() : null);
+        entityUser.setName(userDto.getName());
+        entityUser.setEmail(userDto.getEmail());
+        entityUser.setLogin(userDto.getLogin());
+        entityUser.setPhone(userDto.getPhone());
+        entityUser.setStatus(Constants.ACTIVE_STATUS);
 
-        EntityCompany ggpCompanyRepo = iCompanyRepository.findById(userDto.getCompany())
-                .orElseThrow(() -> new CustomErrorException(HttpStatus.BAD_REQUEST, "Company no encontrado"));
+        entityUser.setRolId(userDto.getRolId());
+        entityUser.setPositionId(userDto.getPositionId());
+        entityUser.setCompanyId(userDto.getCompanyId());
+        entityUser.setAreaId(userDto.getAreaId());
 
-        EntityPosition ggpPositionRepo = iPositionRepository.findById(userDto.getPosition())
-                .orElseThrow(() -> new CustomErrorException(HttpStatus.BAD_REQUEST, "Position no encontrado"));
-
-        EntityArea ggpAreaRepo = iAreaRepository.findById(userDto.getArea())
-                .orElseThrow(() -> new CustomErrorException(HttpStatus.BAD_REQUEST, "Area no encontrada"));
-
-
-        EntityUser entityUserRepo = new EntityUser();
-        entityUserRepo.setName(userDto.getName());
-        entityUserRepo.setEmail(userDto.getEmail());
-        entityUserRepo.setLogin(userDto.getLogin());
-        entityUserRepo.setStatus(Constants.ACTIVE_STATUS);
-        entityUserRepo.setRol(ggpRolRepo);
-        entityUserRepo.setPosition(ggpPositionRepo);
-        entityUserRepo.setCompany(ggpCompanyRepo);
-        entityUserRepo.setArea(ggpAreaRepo);
-
-        if (userDto.getPassword() != null) {
-            String encodedPassword = utils.bcryptEncryptor(userDto.getPassword());
-            entityUserRepo.setPassword(encodedPassword);
+        // Password
+        if (userDto.getPassword() != null && !userDto.getPassword().isBlank()) {
+            entityUser.setPassword(utils.bcryptEncryptor(userDto.getPassword()));
         } else {
-            entityUserRepo.setPassword(utils.bcryptEncryptor(Constants.DEFAULT_PASSWORD));
+            entityUser.setPassword(utils.bcryptEncryptor(Constants.DEFAULT_PASSWORD));
         }
 
-        EntityUser newEntityUserRepo = iRepository.save(entityUserRepo);
-        return mapUserDto(newEntityUserRepo);
+        EntityUser saved = iRepository.save(entityUser);
+        return mapUserDto(saved);
     }
-
-
 
     @Override
     @Transactional
@@ -117,16 +102,16 @@ public class UserServiceImpl implements IUserService {
         if (objectExists && objectUserOptional.getTotalElements() == 0) {
 
 
-            EntityRol ggpRolRepo = iRolRepository.findById(userDto.getRol())
+            EntityRol ggpRolRepo = iRolRepository.findById(userDto.getRolId())
                     .orElseThrow(() -> new CustomErrorException(HttpStatus.BAD_REQUEST, "Rol no encontrado"));
 
-            EntityCompany ggpCompanyRepo = iCompanyRepository.findById(userDto.getCompany())
+            EntityCompany ggpCompanyRepo = iCompanyRepository.findById(userDto.getCompanyId())
                     .orElseThrow(() -> new CustomErrorException(HttpStatus.BAD_REQUEST, "Company no encontrado"));
 
-            EntityPosition ggpPositionRepo = iPositionRepository.findById(userDto.getPosition())
+            EntityPosition ggpPositionRepo = iPositionRepository.findById(userDto.getPositionId())
                     .orElseThrow(() -> new CustomErrorException(HttpStatus.BAD_REQUEST, "Position no encontrado"));
 
-            EntityArea ggpAreaRepo = iAreaRepository.findById(userDto.getArea())
+            EntityArea ggpAreaRepo = iAreaRepository.findById(userDto.getAreaId())
                     .orElseThrow(() -> new CustomErrorException(HttpStatus.BAD_REQUEST, "Area no encontrada"));
 
 
@@ -134,11 +119,12 @@ public class UserServiceImpl implements IUserService {
             entityUserRepo.setName(userDto.getName());
             entityUserRepo.setEmail(userDto.getEmail());
             entityUserRepo.setLogin(userDto.getLogin());
-            entityUserRepo.setStatus(userDto.getStatus());
-            entityUserRepo.setRol(ggpRolRepo);
-            entityUserRepo.setPosition(ggpPositionRepo);
-            entityUserRepo.setCompany(ggpCompanyRepo);
-            entityUserRepo.setArea(ggpAreaRepo);
+            entityUserRepo.setStatus(("ACTIVE"));
+            entityUserRepo.setPhone(userDto.getPhone());
+            entityUserRepo.setRolId(userDto.getRolId());
+            entityUserRepo.setPositionId(userDto.getPositionId());
+            entityUserRepo.setCompanyId(userDto.getCompanyId());
+            entityUserRepo.setAreaId(userDto.getAreaId());
 
             if (userDto.getPassword() != null) {
                 String encodedPassword = utils.bcryptEncryptor(userDto.getPassword());
@@ -246,13 +232,14 @@ public class UserServiceImpl implements IUserService {
                         .login(objects.getLogin())
                         .password(objects.getPassword())
                         .email(objects.getEmail())
-                        .rol(RolDto.builder()
-                                .id(objects.getRol().getId())
-                                .name(objects.getRol().getName())
-                                .build())
-                        .rolId(objects.getRol().getId())
-                        .position(objects.getPosition())
-                        .company(objects.getCompany())
+                        .rolId(objects.getRolId())
+                        .rolName(objects.getName())
+                        .positionId(objects.getPositionId())
+                        .positionName(objects.getName())
+                        .companyId(objects.getCompanyId())
+                        .companyName(objects.getName())
+                        .areaId(objects.getAreaId())
+                        .areaName(objects.getName())
                         .status(objects.getStatus())
                         .build()
                 )
@@ -343,13 +330,15 @@ public class UserServiceImpl implements IUserService {
                 .login(dto.getLogin())
                 .password(dto.getPassword())
                 .email(dto.getEmail())
-                .rol(rolDto)
+                .rolId(dto.getId())
                 .rolName(dto.getRolName())
-                .position(new EntityPosition(dto.getId(), dto.getPositionDescription()))
-                .company(new EntityCompany(dto.getId(), dto.getCompanyName()))
-                .Area(new EntityArea(dto.getId(), dto.getAreaDescription()))
+                .companyId(dto.getId())
+                .companyName(dto.getCompanyName())
+                .areaId(dto.getId())
+                .areaName(dto.getName())
+                .positionId(dto.getId())
+                .positionName(dto.getName())
                 .status(dto.getStatus())
-                .ability(Collections.emptyList())
                 .build();
     }
 
@@ -388,10 +377,10 @@ public class UserServiceImpl implements IUserService {
         UserDto objectDtoVo = new UserDto();
         BeanUtils.copyProperties(objectUser, objectDtoVo);
 
-        objectDtoVo.setRolId(objectUser.getRol().getId());
-        objectDtoVo.setCompanyId(objectUser.getCompany().getId());
-        objectDtoVo.setPositionId(objectUser.getPosition().getId());
-        objectDtoVo.setAreaId(objectUser.getArea().getId());
+        objectDtoVo.setRolId(objectUser.getRolId());
+        objectDtoVo.setCompanyId(objectUser.getCompanyId());
+        objectDtoVo.setPositionId(objectUser.getPositionId());
+        objectDtoVo.setAreaId(objectUser.getAreaId());
 
         return objectDtoVo;
     }
@@ -403,7 +392,7 @@ public class UserServiceImpl implements IUserService {
                 ObjectMapperUtils.mapAll(entityPage.getContent(),
                         GgpUserGetAllDto.class),
                 pagingSort, totalElements).map(ggpUserGetAllDto -> {
-            ggpUserGetAllDto.setRolId(ggpUserGetAllDto.getRol().getId());
+            ggpUserGetAllDto.setRolId(ggpUserGetAllDto.getRolId());
             return ggpUserGetAllDto;
         });
     }

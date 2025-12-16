@@ -14,9 +14,10 @@ public class GgpUserSaveAndUpdateDto {
     private String login;
     private String password;
     private String email;
-    private Long rol;
-    private Long position;
-    private Long company;
-    private Long area;
+    private Long rolId;
+    private Long positionId;
+    private Long companyId;
+    private Long areaId;
+    private String phone;
     private String status;
 }

@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "user_app")
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class EntityUser implements Serializable {
 
     @Id
@@ -32,23 +32,22 @@ public class EntityUser implements Serializable {
     @Column(name = "email", unique = true, nullable = false, length = 255)
     private String email;
 
-    @ManyToOne
-    @JoinColumn(name="rol_id", nullable=false)
-    private EntityRol rol;
+    @Column(name = "rol_id")
+    private Long rolId;
 
-    @ManyToOne
-    @JoinColumn(name="position_id", nullable=false)
-    private EntityPosition position;
+    @Column(name = "position_id")
+    private Long positionId;
 
-    @ManyToOne
-    @JoinColumn(name="company_id", nullable=false)
-    private EntityCompany company;
+    @Column(name = "company_id")
+    private Long companyId;
 
-    @ManyToOne
-    @JoinColumn(name="area_id", nullable=false)
-    private EntityArea area;
+    @Column(name = "area_id")
+    private Long areaId;
 
-    @Column(name = "status", nullable = false, length = 255)
+    @Column(name = "phone", unique = true, nullable = false)
+    private String phone;
+
+    @Column(name = "status")
     private String status;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")

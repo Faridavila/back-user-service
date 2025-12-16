@@ -5,15 +5,17 @@ import com.asb.user.model.IN.LoginIn;
 import com.asb.user.model.OUT.LoginOut;
 import com.asb.user.model.dto.AbilityDto;
 import com.asb.user.model.dto.UserDto;
-import com.asb.user.model.entity.EntityUser;
-import com.asb.user.repository.IUserRepository;
+import com.asb.user.model.entity.*;
+import com.asb.user.repository.*;
 import com.asb.user.security.JwtUtil;
 import com.asb.user.service.ILoginGGPService;
+import com.asb.user.util.LoginMode;
 import com.asb.user.util.Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,14 @@ public class LoginGGPServiceImpl implements ILoginGGPService {
 
     private final IUserRepository iRepository;
 
+    private final IRolRepository iRolRepository;
+
+    private final ICompanyRepository iCompanyRepository;
+
+    private final IAreaRepository iAreaRepository;
+
+    private final IPositionRepository iPositionRepository;
+
     private final JwtUtil jwtUtil;
 
     private final Utils utils;
@@ -37,46 +47,78 @@ public class LoginGGPServiceImpl implements ILoginGGPService {
 
     @Override
     public LoginOut login(LoginIn loginIn) {
-        LoginOut loginOut = new LoginOut();
-        Boolean isCorrect = false;
-        String token = "";
 
-        Optional<EntityUser> objectOptional = iRepository.findByLogin(loginIn.getUsername());
-        UserDto objectDtoVo = null;
-        if (objectOptional.isPresent()) {
-            objectDtoVo = mapUserDto(objectOptional);
-
-            isCorrect = utils.doPasswordsMatch(loginIn.getPassword(), objectDtoVo.getPassword());
-
-            List<AbilityDto> ability = new ArrayList<AbilityDto>();
-            ability.add(new AbilityDto("manage", "all"));
-
-            objectDtoVo.setAbility(ability);
-
-            if (isCorrect) {
-                objectDtoVo.setTokenDateExpired(new Date(System.currentTimeMillis() + EXPIRATION_TIME_LONG));
-                token = jwtUtil.generateToken(loginIn.getUsername());
-
-                objectDtoVo.setToken(token);
-
-                objectDtoVo.setPassword("******");
-
-                loginOut.setData(objectDtoVo);
-                loginOut.setStatusCode(HttpStatus.OK.value());
-                loginOut.setMessage("success");
-            } else {
-                throw new CustomErrorException(HttpStatus.BAD_REQUEST, "Error[Credenciales incorrectas]");
-            }
+        if (loginIn.getLoginMode() == LoginMode.BUSSINES_SUITE_LOGIN) {
+            throw new CustomErrorException(HttpStatus.NOT_IMPLEMENTED, "Login Business Suite no implementado");
         }
 
+        String input = loginIn.getUsername().trim();
+        Optional<EntityUser> userOpt = iRepository.findByEmailOrLoginOrPhone(input);
+
+        if (userOpt.isEmpty()) {
+            throw new CustomErrorException(HttpStatus.BAD_REQUEST, "Usuario no encontrado");
+        }
+
+        EntityUser user = userOpt.get();
+
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        if (!encoder.matches(loginIn.getPassword(), user.getPassword())) {
+            throw new CustomErrorException(HttpStatus.BAD_REQUEST, "Credenciales incorrectas");
+        }
+
+        UserDto userDto = mapUserDto(Optional.of(user));
+
+        String token = jwtUtil.generateToken(user.getLogin());
+        userDto.setToken(token);
+        userDto.setTokenDateExpired(new Date(System.currentTimeMillis() + EXPIRATION_TIME_LONG));
+        userDto.setPassword("******");
+
+        List<AbilityDto> abilities = new ArrayList<>();
+        abilities.add(new AbilityDto("manage", "all"));
+        userDto.setAbility(abilities);
+
+        LoginOut loginOut = new LoginOut();
+        loginOut.setData(userDto);
+        loginOut.setStatusCode(HttpStatus.OK.value());
+        loginOut.setMessage("Login exitoso");
         return loginOut;
     }
 
-    private UserDto mapUserDto(Optional<EntityUser> objectUser) {
-        UserDto objectDtoVo = new UserDto();
-        BeanUtils.copyProperties(objectUser.get(), objectDtoVo);
-        objectDtoVo.setRolId(objectUser.get().getRol().getId());
-        return objectDtoVo;
+    private UserDto mapUserDto(Optional<EntityUser> objectOptional) {
+        EntityUser user = objectOptional.get();
+        String rolName = iRolRepository.findById(user.getRolId())
+                .map(EntityRol::getName)
+                .orElse("Sin rol");
+
+        String positionName = iPositionRepository.findById(user.getPositionId())
+                .map(EntityPosition::getDescription)
+                .orElse("Sin cargo");
+
+        String companyName = iCompanyRepository.findById(user.getCompanyId())
+                .map(EntityCompany::getCompanyName)
+                .orElse("Sin empresa");
+
+        String areaName = iAreaRepository.findById(user.getAreaId())
+                .map(EntityArea::getDescription)
+                .orElse("Sin área");
+
+        return UserDto.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .login(user.getLogin())
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .rolId(user.getRolId())
+                .rolName(rolName)
+                .positionId(user.getPositionId())
+                .positionName(positionName)
+                .companyId(user.getCompanyId())
+                .companyName(companyName)
+                .areaId(user.getAreaId())
+                .areaName(areaName)
+                .phone(user.getPhone())
+                .status(user.getStatus())
+                .build();
     }
 
 }
