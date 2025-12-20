@@ -220,9 +220,45 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public List<GgpUserGetAllDto> getAllWithOutPage(Map<String, String> customQuery) {
+            String status = Constants.ACTIVE_STATUS;
+            Long rolId = Constants.ROLD_ID_CONDUCTOR;
+
+            if (customQuery.containsKey("status") && !customQuery.get("status").trim().isEmpty()) {
+                status = customQuery.get("status").trim();
+            }
+            if (customQuery.containsKey("rolId") && !customQuery.get("rolId").trim().isEmpty()) {
+                rolId = Long.valueOf(customQuery.get("rolId").trim());
+            }
+            return iRepository.findByStatusAndRolId(status, rolId).stream()
+                    .map(user -> GgpUserGetAllDto.builder()
+                            .id(user.getId())
+                            .name(user.getName())
+                            .login(user.getLogin())
+                            .password(user.getPassword())
+                            .email(user.getEmail())
+                            .rolId(user.getRolId())
+                            .rolName("Conductor")
+                            .positionId(user.getPositionId())
+                            .positionName(user.getName())
+                            .companyId(user.getCompanyId())
+                            .companyName(user.getName())
+                            .areaId(user.getAreaId())
+                            .areaName(user.getName())
+                            .status(user.getStatus())
+                            .build())
+                    .collect(Collectors.toList());
+        }
+
+
+    @Override
+    public List<GgpUserGetAllDto> getAllRolByUser(Map<String, String> customQuery) {
         String status = Constants.ACTIVE_STATUS;
+        Long rol = Constants.ROLD_ID_CONDUCTOR;
         if (customQuery.containsKey("status")) {
             status = customQuery.get("status");
+        }
+        if (customQuery.containsKey("rol")) {
+            rol = Long.valueOf(customQuery.get("rol"));
         }
 
         return iRepository.findByStatus(status).stream()
@@ -246,73 +282,98 @@ public class UserServiceImpl implements IUserService {
                 .collect(Collectors.toList());
     }
 
+
     @Override
     public Page<GgpUserGetAllDto> searchCustom(Map<String, String> customQuery) {
         String orders = "ASC";
-        String sortBy = "id";  // Default
+        String sortBy = "id";
         int page = 0;
         int size = 5;
         String status = Constants.ACTIVE_STATUS;
+
         String id = null;
-        String name = null;
+        String userName = null;
         String email = null;
         String login = null;
-        String company = null;
-        String position = null;
-        String area = null;
-        String rol = null;
+        String phone = null;
+        String companyName = null;
+        String positionDescription = null;
+        String areaDescription = null;
+        String rolName = null;
 
         if (customQuery.containsKey("orders")) {
             orders = customQuery.get("orders");
         }
+
         if (customQuery.containsKey("sortBy")) {
             sortBy = customQuery.get("sortBy");
-            switch (sortBy) {
-                case "company" -> sortBy = "company.companyName";
-                case "position" -> sortBy = "position.description";
-                case "area" -> sortBy = "area.description";
-                case "rol" -> sortBy = "rol.name";
-            }
         }
+
         if (customQuery.containsKey("page")) {
             page = Integer.parseInt(customQuery.get("page"));
         }
+
         if (customQuery.containsKey("size")) {
             size = Integer.parseInt(customQuery.get("size"));
         }
+
         if (customQuery.containsKey("status")) {
             status = customQuery.get("status");
         }
-        if (customQuery.containsKey("id") && !customQuery.get("id").isEmpty()) {
-            id = "%" + customQuery.get("id") + "%";
+
+        if (customQuery.containsKey("id") && !customQuery.get("id").trim().isEmpty()) {
+            id = "%" + customQuery.get("id").trim() + "%";
         }
-        if (customQuery.containsKey("name")) {
-            name = "%" + customQuery.get("name") + "%";
+
+        if (customQuery.containsKey("name") && !customQuery.get("name").trim().isEmpty()) {
+            userName = "%" + customQuery.get("name").trim() + "%";
         }
-        if (customQuery.containsKey("email")) {
-            email = "%" + customQuery.get("email") + "%";
+
+        if (customQuery.containsKey("email") && !customQuery.get("email").trim().isEmpty()) {
+            email = "%" + customQuery.get("email").trim() + "%";
         }
-        if (customQuery.containsKey("login")) {
-            login = "%" + customQuery.get("login") + "%";
+
+        if (customQuery.containsKey("login") && !customQuery.get("login").trim().isEmpty()) {
+            login = "%" + customQuery.get("login").trim() + "%";
         }
-        if (customQuery.containsKey("company")) {
-            company = "%" + customQuery.get("company") + "%";
+
+        if (customQuery.containsKey("phone") && !customQuery.get("phone").trim().isEmpty()) {
+            phone = "%" + customQuery.get("phone").trim() + "%";
         }
-        if (customQuery.containsKey("position")) {
-            position = "%" + customQuery.get("position") + "%";
+
+        if (customQuery.containsKey("companyName") && !customQuery.get("companyName").trim().isEmpty()) {
+            companyName = "%" + customQuery.get("companyName").trim() + "%";
         }
-        if (customQuery.containsKey("area")) {
-            area = "%" + customQuery.get("area") + "%";
+
+        if (customQuery.containsKey("positionName") && !customQuery.get("positionName").trim().isEmpty()) {
+            positionDescription = "%" + customQuery.get("positionName").trim() + "%";
         }
-        if (customQuery.containsKey("rol")) {
-            rol = "%" + customQuery.get("rol") + "%";
+
+        if (customQuery.containsKey("areaName") && !customQuery.get("areaName").trim().isEmpty()) {
+            areaDescription = "%" + customQuery.get("areaName").trim() + "%";
+        }
+
+        if (customQuery.containsKey("rolName") && !customQuery.get("rolName").trim().isEmpty()) {
+            rolName = "%" + customQuery.get("rolName").trim() + "%";
         }
 
         Sort.Direction direction = Sort.Direction.fromString(orders);
         Sort sort = Sort.by(direction, sortBy);
         Pageable pagingSort = PageRequest.of(page, size, sort);
 
-        Page<UserResponsiveDto> responsivePage = iRepository.searchFiltered(id, name, email, login, company, position, area, rol, status, pagingSort);
+        Page<UserResponsiveDto> responsivePage = iRepository.searchFiltered(
+                id,
+                userName,
+                email,
+                login,
+                phone,
+                companyName,
+                positionDescription,
+                areaDescription,
+                rolName,
+                status,
+                pagingSort
+        );
 
         return responsivePage.map(this::mapToGgpUserGetAllDto);
     }
@@ -328,6 +389,7 @@ public class UserServiceImpl implements IUserService {
                 .id(dto.getId())
                 .name(dto.getName())
                 .login(dto.getLogin())
+                .phone(dto.getPhone())
                 .password(dto.getPassword())
                 .email(dto.getEmail())
                 .rolId(dto.getId())
@@ -335,9 +397,9 @@ public class UserServiceImpl implements IUserService {
                 .companyId(dto.getId())
                 .companyName(dto.getCompanyName())
                 .areaId(dto.getId())
-                .areaName(dto.getName())
+                .areaName(dto.getAreaDescription())
                 .positionId(dto.getId())
-                .positionName(dto.getName())
+                .positionName(dto.getPositionDescription())
                 .status(dto.getStatus())
                 .build();
     }

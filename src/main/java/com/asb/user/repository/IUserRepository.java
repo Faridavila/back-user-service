@@ -52,41 +52,62 @@ public interface IUserRepository extends JpaRepository<EntityUser, Long> {
 
     Page<EntityUser> findByStatus(String status, Pageable pageable);
 
+
+    List<EntityUser> findByStatusAndRolId(String status, Long rolId);
+
     List<EntityUser> findByStatus(String status);
 
-    @Query(value = "SELECT new com.asb.user.model.dto.UserResponsiveDto(u.id, u.name, u.login, u.password, u.email, r.name, p1.description, c1.companyName, a1.description, u.status) " +
-            "FROM EntityUser u " +
-            "INNER JOIN EntityRol r ON u.rolId = r.id " +
-            "INNER JOIN EntityPosition p1 ON u.positionId = p1.id " +
-            "INNER JOIN EntityCompany c1 ON u.companyId = c1.id " +
-            "INNER JOIN EntityArea a1 ON u.areaId = a1.id " +
-            "WHERE (:id IS NULL OR CAST(u.id AS string) LIKE :id) " +
-            "AND (:name IS NULL OR UPPER(u.name) LIKE UPPER(:name)) " +
-            "AND (:email IS NULL OR UPPER(u.email) LIKE UPPER(:email)) " +
-            "AND (:login IS NULL OR UPPER(u.login) LIKE UPPER(:login)) " +
-            "AND (:company IS NULL OR UPPER(c1.companyName) LIKE UPPER(:company)) " +
-            "AND (:position IS NULL OR UPPER(p1.description) LIKE UPPER(:position)) " +
-            "AND (:area IS NULL OR UPPER(a1.description) LIKE UPPER(:area)) " +
-            "AND (:rol IS NULL OR UPPER(r.name) LIKE UPPER(:rol)) " +
-            "AND u.status = :status",
-            countQuery = "SELECT COUNT(u) " +
-                    "FROM EntityUser u " +
-                    "INNER JOIN EntityRol r ON u.rolId = r.id " +
-                    "INNER JOIN EntityPosition p1 ON u.positionId = p1.id " +
-                    "INNER JOIN EntityCompany c1 ON u.companyId = c1.id " +
-                    "INNER JOIN EntityArea a1 ON u.areaId = a1.id " +
-                    "WHERE (:id IS NULL OR CAST(u.id AS string) LIKE :id) " +
-                    "AND (:name IS NULL OR UPPER(u.name) LIKE UPPER(:name)) " +
-                    "AND (:email IS NULL OR UPPER(u.email) LIKE UPPER(:email)) " +
-                    "AND (:login IS NULL OR UPPER(u.login) LIKE UPPER(:login)) " +
-                    "AND (:company IS NULL OR UPPER(c1.companyName) LIKE UPPER(:company)) " +
-                    "AND (:position IS NULL OR UPPER(p1.description) LIKE UPPER(:position)) " +
-                    "AND (:area IS NULL OR UPPER(a1.description) LIKE UPPER(:area)) " +
-                    "AND (:rol IS NULL OR UPPER(r.name) LIKE UPPER(:rol)) " +
-                    "AND u.status = :status")
-    Page<UserResponsiveDto> searchFiltered(@Param("id") String id,
-                                           @Param("name") String name, @Param("email") String email, @Param("login") String login,
-                                           @Param("company") String company, @Param("position") String position,
-                                           @Param("area") String area, @Param("rol") String rol,
-                                           @Param("status") String status, Pageable pageable);
+    @Query(value = """
+    SELECT new com.asb.user.model.dto.UserResponsiveDto(
+        u.id, u.name, u.login, u.password, u.email,
+        r.name, p1.description, c1.companyName, a1.description, u.phone,u.status
+    )
+    FROM EntityUser u
+    INNER JOIN EntityRol r ON u.rolId = r.id
+    INNER JOIN EntityPosition p1 ON u.positionId = p1.id
+    INNER JOIN EntityCompany c1 ON u.companyId = c1.id
+    INNER JOIN EntityArea a1 ON u.areaId = a1.id
+    WHERE u.status = 'ACTIVE'
+      AND (:id IS NULL OR CAST(u.id AS string) LIKE :id)
+      AND (:userName IS NULL OR UPPER(u.name) LIKE UPPER(:userName))
+      AND (:email IS NULL OR UPPER(u.email) LIKE UPPER(:email))
+      AND (:login IS NULL OR UPPER(u.login) LIKE UPPER(:login))
+      AND (:phone IS NULL OR UPPER(u.phone) LIKE UPPER(:phone))
+      AND (:companyName IS NULL OR UPPER(c1.companyName) LIKE UPPER(:companyName))
+      AND (:positionDescription IS NULL OR UPPER(p1.description) LIKE UPPER(:positionDescription))
+      AND (:areaDescription IS NULL OR UPPER(a1.description) LIKE UPPER(:areaDescription))
+      AND (:rolName IS NULL OR UPPER(r.name) LIKE UPPER(:rolName))
+      AND u.status = :status
+    """,
+            countQuery = """
+    SELECT COUNT(u)
+    FROM EntityUser u
+    INNER JOIN EntityRol r ON u.rolId = r.id
+    INNER JOIN EntityPosition p1 ON u.positionId = p1.id
+    INNER JOIN EntityCompany c1 ON u.companyId = c1.id
+    INNER JOIN EntityArea a1 ON u.areaId = a1.id
+    WHERE u.status = 'ACTIVE'
+      AND (:id IS NULL OR CAST(u.id AS string) LIKE :id)
+      AND (:userName IS NULL OR UPPER(u.name) LIKE UPPER(:userName))
+      AND (:email IS NULL OR UPPER(u.email) LIKE UPPER(:email))
+      AND (:login IS NULL OR UPPER(u.login) LIKE UPPER(:login))
+      AND (:phone IS NULL OR UPPER(u.phone) LIKE UPPER(:phone))
+      AND (:companyName IS NULL OR UPPER(c1.companyName) LIKE UPPER(:companyName))
+      AND (:positionDescription IS NULL OR UPPER(p1.description) LIKE UPPER(:positionDescription))
+      AND (:areaDescription IS NULL OR UPPER(a1.description) LIKE UPPER(:areaDescription))
+      AND (:rolName IS NULL OR UPPER(r.name) LIKE UPPER(:rolName))
+      AND u.status = :status
+    """)
+    Page<UserResponsiveDto> searchFiltered(
+            @Param("id") String id,
+            @Param("userName") String userName,
+            @Param("email") String email,
+            @Param("login") String login,
+            @Param("phone") String phone,
+            @Param("companyName") String companyName,
+            @Param("positionDescription") String positionDescription,
+            @Param("areaDescription") String areaDescription,
+            @Param("rolName") String rolName,
+            @Param("status") String status,
+            Pageable pageable);
 }

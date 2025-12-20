@@ -98,6 +98,10 @@ public class LoginGGPServiceImpl implements ILoginGGPService {
                 .map(EntityCompany::getCompanyName)
                 .orElse("Sin empresa");
 
+        String companyImage = iCompanyRepository.findById(user.getCompanyId())
+                .map(EntityCompany::getImage)
+                .orElse("");
+
         String areaName = iAreaRepository.findById(user.getAreaId())
                 .map(EntityArea::getDescription)
                 .orElse("Sin área");
@@ -114,6 +118,7 @@ public class LoginGGPServiceImpl implements ILoginGGPService {
                 .positionName(positionName)
                 .companyId(user.getCompanyId())
                 .companyName(companyName)
+                .imageCompany(companyImage)
                 .areaId(user.getAreaId())
                 .areaName(areaName)
                 .phone(user.getPhone())

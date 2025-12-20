@@ -18,5 +18,6 @@ public class UserResponsiveDto {
     private String positionDescription;
     private String companyName;
     private String areaDescription;
+    private String phone;
     private String status;
 }

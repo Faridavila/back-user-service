@@ -24,6 +24,7 @@ public class UserDto {
     private String positionName;
     private Long companyId;
     private String companyName;
+    private String imageCompany;
     private Long areaId;
     private String areaName;
     private String phone;

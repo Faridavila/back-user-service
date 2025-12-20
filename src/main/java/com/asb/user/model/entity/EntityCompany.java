@@ -37,6 +37,9 @@ public class EntityCompany {
     @Column(name = "economic_activity_id")
     private Long economicActivityId;
 
+    @Column(name = "image")
+    private String  image;
+
     @Column(name = "status")
     private String  status;
 

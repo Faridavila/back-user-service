@@ -10,10 +10,8 @@ public class Constants {
     public static String FORMAT_DATE_DDMMYYYYHHMMSS = "dd/MM/yyyy HH:mm:ss";
 
     public static String DEFAULT_PASSWORD = "user123";
-    public static Long ROLD_ID_TECNICO = 2L;
+    public static Long ROLD_ID_CONDUCTOR = 5L;
     public static Long ROLD_ID_ADMINISTRADOR = 1L;
-
-    public static String COMPANY = "aqualia";
 
     public static String ENVIRONTMENT_NAME = "soporte";
 }
