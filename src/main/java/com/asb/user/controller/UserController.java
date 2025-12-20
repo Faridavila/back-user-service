@@ -68,6 +68,11 @@ public class UserController {
         return ResponseEntity.ok(iUserService.getAllWithOutPage(customQuery));
     }
 
+    @GetMapping("/get-all-rol-by-user")
+    public ResponseEntity<List<GgpUserGetAllDto>> getAllRolByUser(@RequestParam Map<String, String> customQuery) {
+        return ResponseEntity.ok(iUserService.getAllWithOutPage(customQuery));
+    }
+
     @GetMapping("/search")
     public ResponseEntity<Page<GgpUserGetAllDto>> search(@RequestParam Map<String, String> customQuery) {
         return ResponseEntity.ok(iUserService.searchCustom(customQuery));
