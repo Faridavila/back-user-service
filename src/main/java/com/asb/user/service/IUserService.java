@@ -15,6 +15,8 @@ public interface IUserService {
 
     public UserDto update(long userId, GgpUserSaveAndUpdateDto user);
 
+    public UserDto status(long userId, StatusUserDto statusUser);
+
     boolean delete(long id);
 
     UserDto get(long id);

@@ -83,6 +83,11 @@ public class UserController {
         return ResponseEntity.ok(iUserService.update(userId, user));
     }
 
+    @PutMapping("/status/{userId}")
+    public ResponseEntity<UserDto> status(@PathVariable("userId")Long userId, @RequestBody StatusUserDto statusUser) {
+        return ResponseEntity.ok(iUserService.status(userId, statusUser));
+    }
+
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<HttpStatus> delete(@PathVariable("id") long id) {

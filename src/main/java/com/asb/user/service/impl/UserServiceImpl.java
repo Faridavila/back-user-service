@@ -146,6 +146,23 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional
+    public UserDto status(long userId, StatusUserDto statusUser) {
+        EntityUser entityUser = iRepository.findById(userId)
+                .orElseThrow(() -> new CustomErrorException(HttpStatus.BAD_REQUEST, "Usuario no encontrado"));
+
+        if (!Constants.ACTIVE_STATUS.equals(statusUser.getStatus()) &&
+                !Constants.INACTIVE_STATUS.equals(statusUser.getStatus())) {
+            throw new CustomErrorException(HttpStatus.BAD_REQUEST, "Estado inválido. Use 'ACTIVE' o 'INACTIVE'");
+        }
+
+        entityUser.setStatus(statusUser.getStatus());
+        EntityUser updated = iRepository.save(entityUser);
+
+        return mapUserDto(updated);
+    }
+
+    @Override
+    @Transactional
     public boolean delete(long id) {
         try {
             Optional<EntityUser> objectOptional = iRepository.findById(id);
