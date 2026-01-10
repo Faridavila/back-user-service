@@ -73,6 +73,11 @@ public class UserController {
         return ResponseEntity.ok(iUserService.getAllWithOutPage(customQuery));
     }
 
+    @GetMapping("/get-all-terminal-by-user")
+    public ResponseEntity<List<GgpUserGetAllDto>> getAllTerminalByUser(@RequestParam Map<String, String> customQuery) {
+        return ResponseEntity.ok(iUserService.getAllTerminalByUser(customQuery));
+    }
+
     @GetMapping("/search")
     public ResponseEntity<Page<GgpUserGetAllDto>> search(@RequestParam Map<String, String> customQuery) {
         return ResponseEntity.ok(iUserService.searchCustom(customQuery));

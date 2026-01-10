@@ -143,6 +143,21 @@ public class UserServiceImpl implements IUserService {
         }
     }
 
+    @Override
+    public List<GgpUserGetAllDto> getAllTerminalByUser(Map<String, String> customQuery) {
+        String status = Constants.ACTIVE_STATUS;
+        Long terminalId = null;
+
+        if (customQuery.containsKey("status") && !customQuery.get("status").trim().isEmpty()) {
+            status = customQuery.get("status").trim();
+        }
+
+        if (customQuery.containsKey("terminalId") && !customQuery.get("terminalId").trim().isEmpty()) {
+            terminalId = Long.valueOf(customQuery.get("terminalId").trim());
+        }
+
+        return iRepository.findUsersWithoutTerminal(status, terminalId);
+    }
 
     @Override
     @Transactional
@@ -407,7 +422,6 @@ public class UserServiceImpl implements IUserService {
                 .name(dto.getName())
                 .login(dto.getLogin())
                 .phone(dto.getPhone())
-                .password(dto.getPassword())
                 .email(dto.getEmail())
                 .rolId(dto.getId())
                 .rolName(dto.getRolName())

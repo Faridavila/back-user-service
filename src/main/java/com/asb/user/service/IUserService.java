@@ -28,6 +28,8 @@ public interface IUserService {
 
     List<GgpUserGetAllDto> getAllWithOutPage(Map<String, String> customQuery);
 
+    List<GgpUserGetAllDto> getAllTerminalByUser(Map<String, String> customQuery);
+
     List<GgpUserGetAllDto> getAllRolByUser(Map<String, String> customQuery);
 
     Page<GgpUserGetAllDto> searchCustom(Map<String, String> customQuery);
