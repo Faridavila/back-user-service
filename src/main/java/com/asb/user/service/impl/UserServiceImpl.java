@@ -11,10 +11,15 @@ import com.asb.user.util.ModelMapperLocal;
 import com.asb.user.util.ObjectMapperUtils;
 import com.asb.user.util.Utils;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -315,6 +320,7 @@ public class UserServiceImpl implements IUserService {
     }
 
 
+
     @Override
     public Page<GgpUserGetAllDto> searchCustom(Map<String, String> customQuery) {
         String orders = "ASC";
@@ -336,103 +342,182 @@ public class UserServiceImpl implements IUserService {
         if (customQuery.containsKey("orders")) {
             orders = customQuery.get("orders");
         }
-
         if (customQuery.containsKey("sortBy")) {
             sortBy = customQuery.get("sortBy");
         }
-
         if (customQuery.containsKey("page")) {
             page = Integer.parseInt(customQuery.get("page"));
         }
-
         if (customQuery.containsKey("size")) {
             size = Integer.parseInt(customQuery.get("size"));
         }
-
-        if (customQuery.containsKey("status")) {
+        if (customQuery.containsKey("status") && !customQuery.get("status").isEmpty()) {
             status = customQuery.get("status");
         }
-
         if (customQuery.containsKey("id") && !customQuery.get("id").trim().isEmpty()) {
-            id = "%" + customQuery.get("id").trim() + "%";
+            id = customQuery.get("id").trim();
         }
-
         if (customQuery.containsKey("name") && !customQuery.get("name").trim().isEmpty()) {
-            userName = "%" + customQuery.get("name").trim() + "%";
+            userName = customQuery.get("name").trim();
         }
-
         if (customQuery.containsKey("email") && !customQuery.get("email").trim().isEmpty()) {
-            email = "%" + customQuery.get("email").trim() + "%";
+            email = customQuery.get("email").trim();
         }
-
         if (customQuery.containsKey("login") && !customQuery.get("login").trim().isEmpty()) {
-            login = "%" + customQuery.get("login").trim() + "%";
+            login = customQuery.get("login").trim();
         }
-
         if (customQuery.containsKey("phone") && !customQuery.get("phone").trim().isEmpty()) {
-            phone = "%" + customQuery.get("phone").trim() + "%";
+            phone = customQuery.get("phone").trim();
         }
-
         if (customQuery.containsKey("companyName") && !customQuery.get("companyName").trim().isEmpty()) {
-            companyName = "%" + customQuery.get("companyName").trim() + "%";
+            companyName = customQuery.get("companyName").trim();
         }
-
         if (customQuery.containsKey("positionName") && !customQuery.get("positionName").trim().isEmpty()) {
-            positionDescription = "%" + customQuery.get("positionName").trim() + "%";
+            positionDescription = customQuery.get("positionName").trim();
         }
-
         if (customQuery.containsKey("areaName") && !customQuery.get("areaName").trim().isEmpty()) {
-            areaDescription = "%" + customQuery.get("areaName").trim() + "%";
+            areaDescription = customQuery.get("areaName").trim();
         }
-
         if (customQuery.containsKey("rolName") && !customQuery.get("rolName").trim().isEmpty()) {
-            rolName = "%" + customQuery.get("rolName").trim() + "%";
+            rolName = customQuery.get("rolName").trim();
         }
 
         Sort.Direction direction = Sort.Direction.fromString(orders);
-        Sort sort = Sort.by(direction, sortBy);
-        Pageable pagingSort = PageRequest.of(page, size, sort);
+        Pageable pagingSort = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<UserResponsiveDto> responsivePage = iRepository.searchFiltered(
-                id,
-                userName,
-                email,
-                login,
-                phone,
-                companyName,
-                positionDescription,
-                areaDescription,
-                rolName,
-                status,
-                pagingSort
-        );
+        Specification<EntityUser> spec = Specification.where(null);
 
-        return responsivePage.map(this::mapToGgpUserGetAllDto);
-    }
-    private GgpUserGetAllDto mapToGgpUserGetAllDto(UserResponsiveDto dto) {
-        if (dto == null) {
-            return null;
+        final String statusParam = status;
+        spec = spec.and((root, query, cb) ->
+                cb.equal(root.get("status"), statusParam));
+
+
+        if (id != null) {
+            final String idParam = id;
+            spec = spec.and((root, query, cb) ->
+                    cb.like(root.get("id").as(String.class), "%" + idParam + "%"));
         }
-        RolDto rolDto = RolDto.builder()
-                .name(dto.getRolName())
-                .build();
 
-        return GgpUserGetAllDto.builder()
-                .id(dto.getId())
-                .name(dto.getName())
-                .login(dto.getLogin())
-                .phone(dto.getPhone())
-                .email(dto.getEmail())
-                .rolId(dto.getId())
-                .rolName(dto.getRolName())
-                .companyId(dto.getId())
-                .companyName(dto.getCompanyName())
-                .areaId(dto.getId())
-                .areaName(dto.getAreaDescription())
-                .positionId(dto.getId())
-                .positionName(dto.getPositionDescription())
-                .status(dto.getStatus())
-                .build();
+        if (userName != null) {
+            final String nameParam = userName;
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.upper(root.get("name")), "%" + nameParam.toUpperCase() + "%"));
+        }
+
+        if (email != null) {
+            final String emailParam = email;
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.upper(root.get("email")), "%" + emailParam.toUpperCase() + "%"));
+        }
+
+
+        if (login != null) {
+            final String loginParam = login;
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.upper(root.get("login")), "%" + loginParam.toUpperCase() + "%"));
+        }
+
+
+        if (phone != null) {
+            final String phoneParam = phone;
+            spec = spec.and((root, query, cb) ->
+                    cb.like(root.get("phone"), "%" + phoneParam + "%"));
+        }
+
+        if (companyName != null) {
+            final String companyParam = companyName;
+            spec = spec.and((root, query, cb) -> {
+                Subquery<Long> subquery = query.subquery(Long.class);
+                Root<EntityCompany> companyRoot = subquery.from(EntityCompany.class);
+                subquery.select(companyRoot.get("id"))
+                        .where(cb.like(cb.upper(companyRoot.get("name")), "%" + companyParam.toUpperCase() + "%"));
+                return cb.in(root.get("companyId")).value(subquery);
+            });
+        }
+
+        if (positionDescription != null) {
+            final String positionParam = positionDescription;
+            spec = spec.and((root, query, cb) -> {
+                Subquery<Long> subquery = query.subquery(Long.class);
+                Root<EntityPosition> positionRoot = subquery.from(EntityPosition.class);
+                subquery.select(positionRoot.get("id"))
+                        .where(cb.like(cb.upper(positionRoot.get("description")), "%" + positionParam.toUpperCase() + "%"));
+                return cb.in(root.get("positionId")).value(subquery);
+            });
+        }
+
+        if (areaDescription != null) {
+            final String areaParam = areaDescription;
+            spec = spec.and((root, query, cb) -> {
+                Subquery<Long> subquery = query.subquery(Long.class);
+                Root<EntityArea> areaRoot = subquery.from(EntityArea.class);
+                subquery.select(areaRoot.get("id"))
+                        .where(cb.like(cb.upper(areaRoot.get("description")), "%" + areaParam.toUpperCase() + "%"));
+                return cb.in(root.get("areaId")).value(subquery);
+            });
+        }
+
+        if (rolName != null) {
+            final String rolParam = rolName;
+            spec = spec.and((root, query, cb) -> {
+                Subquery<Long> subquery = query.subquery(Long.class);
+                Root<EntityRol> rolRoot = subquery.from(EntityRol.class);
+                subquery.select(rolRoot.get("id"))
+                        .where(cb.like(cb.upper(rolRoot.get("name")), "%" + rolParam.toUpperCase() + "%"));
+                return cb.in(root.get("rolId")).value(subquery);
+            });
+        }
+
+        Page<EntityUser> entityPage = iRepository.findAll(spec, pagingSort);
+
+        Set<Long> rolIds = entityPage.getContent().stream()
+                .map(EntityUser::getRolId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<Long> companyIds = entityPage.getContent().stream()
+                .map(EntityUser::getCompanyId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<Long> positionIds = entityPage.getContent().stream()
+                .map(EntityUser::getPositionId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Set<Long> areaIds = entityPage.getContent().stream()
+                .map(EntityUser::getAreaId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<Long, String> rolMap = iRolRepository.findAllById(rolIds).stream()
+                .collect(Collectors.toMap(EntityRol::getId, EntityRol::getName));
+
+        Map<Long, String> companyMap = iCompanyRepository.findAllById(companyIds).stream()
+                .collect(Collectors.toMap(EntityCompany::getId, EntityCompany::getCompanyName));
+
+        Map<Long, String> positionMap = iPositionRepository.findAllById(positionIds).stream()
+                .collect(Collectors.toMap(EntityPosition::getId, EntityPosition::getDescription));
+
+        Map<Long, String> areaMap = iAreaRepository.findAllById(areaIds).stream()
+                .collect(Collectors.toMap(EntityArea::getId, EntityArea::getDescription));
+        
+        return entityPage.map(entity -> GgpUserGetAllDto.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .login(entity.getLogin())
+                .phone(entity.getPhone())
+                .email(entity.getEmail())
+                .rolId(entity.getRolId())
+                .rolName(entity.getRolId() != null ? rolMap.get(entity.getRolId()) : null)
+                .companyId(entity.getCompanyId())
+                .companyName(entity.getCompanyId() != null ? companyMap.get(entity.getCompanyId()) : null)
+                .areaId(entity.getAreaId())
+                .areaName(entity.getAreaId() != null ? areaMap.get(entity.getAreaId()) : null)
+                .positionId(entity.getPositionId())
+                .positionName(entity.getPositionId() != null ? positionMap.get(entity.getPositionId()) : null)
+                .status(entity.getStatus())
+                .build());
     }
 
     @Transactional

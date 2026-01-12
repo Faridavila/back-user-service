@@ -5,6 +5,7 @@ import com.asb.user.model.dto.UserResponsiveDto;
 import com.asb.user.model.entity.EntityUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -89,66 +90,6 @@ public interface IUserRepository extends JpaRepository<EntityUser, Long> {
 
     List<EntityUser> findByStatus(String status);
 
-    @Query(value = """
-SELECT new com.asb.user.model.dto.UserResponsiveDto(
-    u.id,
-    u.name,
-    u.login,
-    u.password,
-    u.email,
-    r.name,
-    p.description,
-    c.companyName,
-    a.description,
-    u.phone,
-    u.status
-)
-FROM EntityUser u
-JOIN EntityRol r ON u.rolId = r.id
-JOIN EntityPosition p ON u.positionId = p.id
-JOIN EntityCompany c ON u.companyId = c.id
-JOIN EntityArea a ON u.areaId = a.id
-WHERE u.status = :status
-  AND (:id IS NULL OR CAST(u.id AS string) LIKE :id)
-  AND (:userName IS NULL OR UPPER(u.name) LIKE UPPER(:userName))
-  AND (:email IS NULL OR UPPER(u.email) LIKE UPPER(:email))
-  AND (:login IS NULL OR UPPER(u.login) LIKE UPPER(:login))
-  AND (:phone IS NULL OR u.phone LIKE :phone)
-  AND (:companyName IS NULL OR UPPER(c.companyName) LIKE UPPER(:companyName))
-  AND (:positionDescription IS NULL OR UPPER(p.description) LIKE UPPER(:positionDescription))
-  AND (:areaDescription IS NULL OR UPPER(a.description) LIKE UPPER(:areaDescription))
-  AND (:rolName IS NULL OR UPPER(r.name) LIKE UPPER(:rolName))
-""",
-            countQuery = """
-SELECT COUNT(u)
-FROM EntityUser u
-JOIN EntityRol r ON u.rolId = r.id
-JOIN EntityPosition p ON u.positionId = p.id
-JOIN EntityCompany c ON u.companyId = c.id
-JOIN EntityArea a ON u.areaId = a.id
-WHERE u.status = :status
-  AND (:id IS NULL OR CAST(u.id AS string) LIKE :id)
-  AND (:userName IS NULL OR UPPER(u.name) LIKE UPPER(:userName))
-  AND (:email IS NULL OR UPPER(u.email) LIKE UPPER(:email))
-  AND (:login IS NULL OR UPPER(u.login) LIKE UPPER(:login))
-  AND (:phone IS NULL OR u.phone LIKE :phone)
-  AND (:companyName IS NULL OR UPPER(c.companyName) LIKE UPPER(:companyName))
-  AND (:positionDescription IS NULL OR UPPER(p.description) LIKE UPPER(:positionDescription))
-  AND (:areaDescription IS NULL OR UPPER(a.description) LIKE UPPER(:areaDescription))
-  AND (:rolName IS NULL OR UPPER(r.name) LIKE UPPER(:rolName))
-""")
-    Page<UserResponsiveDto> searchFiltered(
-            @Param("id") String id,
-            @Param("userName") String userName,
-            @Param("email") String email,
-            @Param("login") String login,
-            @Param("phone") String phone,
-            @Param("companyName") String companyName,
-            @Param("positionDescription") String positionDescription,
-            @Param("areaDescription") String areaDescription,
-            @Param("rolName") String rolName,
-            @Param("status") String status,
-            Pageable pageable
-    );
 
+    Page<EntityUser> findAll(Specification<EntityUser> spec, Pageable pagingSort);
 }

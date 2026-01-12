@@ -1,17 +1,14 @@
 package com.asb.user.model.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
-@AllArgsConstructor
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class AreaGetAllDto {
 
-    private long id;
+    private Long id;
     private String description;
     private String status;
 

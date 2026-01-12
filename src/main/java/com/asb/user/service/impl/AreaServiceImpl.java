@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -141,14 +142,14 @@ public class AreaServiceImpl implements IAreaService {
     @Override
     public Page<AreaGetAllDto> searchCustom(Map<String, String> customQuery) {
         String orders = "ASC";
-        String sortBy = "id";  // Default
+        String sortBy = "id";
         int page = 0;
         int size = 5;
         String status = Constants.ACTIVE_STATUS;
         String id = null;
         String description = null;
 
-        // Extraer parámetros de la consulta personalizada
+        // Extraer parámetros
         if (customQuery.containsKey("orders")) {
             orders = customQuery.get("orders");
         }
@@ -161,27 +162,45 @@ public class AreaServiceImpl implements IAreaService {
         if (customQuery.containsKey("size")) {
             size = Integer.parseInt(customQuery.get("size"));
         }
-        if (customQuery.containsKey("status")) {
+        if (customQuery.containsKey("status") && !customQuery.get("status").isEmpty()) {
             status = customQuery.get("status");
         }
         if (customQuery.containsKey("id") && !customQuery.get("id").isEmpty()) {
-            id = "%" + customQuery.get("id") + "%";  // Convertir id a String con '%'
+            id = customQuery.get("id");
         }
-        if (customQuery.containsKey("description")) {
-            description = "%" + customQuery.get("description") + "%";  // Hacer búsqueda parcial para descripción
+        if (customQuery.containsKey("description") && !customQuery.get("description").isEmpty()) {
+            description = customQuery.get("description");
         }
 
-        // Configurar la dirección del orden y la paginación
         Sort.Direction direction = Sort.Direction.fromString(orders);
-        Sort sort = Sort.by(direction, sortBy);
-        Pageable pagingSort = PageRequest.of(page, size, sort);
+        Pageable pagingSort = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        // Llamar al repositorio con los filtros y devolver el resultado mapeado
-        Page<AreaGetAllDto> responsivePage = areaRepository.searchFiltered(id, description, status, pagingSort);
+        Specification<EntityArea> spec = Specification.where(null);
 
-        return responsivePage;
+        final String statusParam = status;
+        spec = spec.and((root, query, cb) ->
+                cb.equal(root.get("status"), statusParam));
+
+        if (id != null) {
+            final String idParam = id;
+            spec = spec.and((root, query, cb) ->
+                    cb.like(root.get("id").as(String.class), "%" + idParam + "%"));
+        }
+
+        if (description != null) {
+            final String descParam = description;
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.upper(root.get("description")), "%" + descParam.toUpperCase() + "%"));
+        }
+
+        Page<EntityArea> entityPage = areaRepository.findAll(spec, pagingSort);
+
+        return entityPage.map(entity -> AreaGetAllDto.builder()
+                .id(entity.getId())
+                .description(entity.getDescription())
+                .status(entity.getStatus())
+                .build());
     }
-
 
     private AreaDto mapAreaDto(EntityArea entityArea) {
         AreaDto areaDto = new AreaDto();

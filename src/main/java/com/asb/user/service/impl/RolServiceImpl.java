@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -141,14 +142,13 @@ public class RolServiceImpl implements IRolService {
     @Override
     public Page<RolGetAllDto> searchCustom(Map<String, String> customQuery) {
         String orders = "ASC";
-        String sortBy = "id";  // Default
+        String sortBy = "id";
         int page = 0;
         int size = 5;
         String status = Constants.ACTIVE_STATUS;
         String id = null;
         String name = null;
 
-        // Extraer parámetros de la consulta personalizada
         if (customQuery.containsKey("orders")) {
             orders = customQuery.get("orders");
         }
@@ -161,25 +161,44 @@ public class RolServiceImpl implements IRolService {
         if (customQuery.containsKey("size")) {
             size = Integer.parseInt(customQuery.get("size"));
         }
-        if (customQuery.containsKey("status")) {
+        if (customQuery.containsKey("status") && !customQuery.get("status").isEmpty()) {
             status = customQuery.get("status");
         }
         if (customQuery.containsKey("id") && !customQuery.get("id").isEmpty()) {
-            id = "%" + customQuery.get("id") + "%";  // Convertir id a String con '%'
+            id = customQuery.get("id");
         }
-        if (customQuery.containsKey("name")) {
-            name = "%" + customQuery.get("name") + "%";  // Hacer búsqueda parcial para nombre
+        if (customQuery.containsKey("name") && !customQuery.get("name").isEmpty()) {
+            name = customQuery.get("name");
         }
 
-        // Configurar la dirección del orden y la paginación
         Sort.Direction direction = Sort.Direction.fromString(orders);
-        Sort sort = Sort.by(direction, sortBy);
-        Pageable pagingSort = PageRequest.of(page, size, sort);
+        Pageable pagingSort = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        // Llamar al repositorio con los filtros y devolver el resultado mapeado
-        Page<RolGetAllDto> responsivePage = rolRepository.searchFiltered(id, name, status, pagingSort);
+        Specification<EntityRol> spec = Specification.where(null);
 
-        return responsivePage;
+        final String statusParam = status;
+        spec = spec.and((root, query, cb) ->
+                cb.equal(root.get("status"), statusParam));
+
+        if (id != null) {
+            final String idParam = id;
+            spec = spec.and((root, query, cb) ->
+                    cb.like(root.get("id").as(String.class), "%" + idParam + "%"));
+        }
+
+        if (name != null) {
+            final String nameParam = name;
+            spec = spec.and((root, query, cb) ->
+                    cb.like(cb.upper(root.get("name")), "%" + nameParam.toUpperCase() + "%"));
+        }
+
+        Page<EntityRol> entityPage = rolRepository.findAll(spec, pagingSort);
+
+        return entityPage.map(entity -> RolGetAllDto.builder()
+                .id(entity.getId())
+                .name(entity.getName())
+                .status(entity.getStatus())
+                .build());
     }
 
 
