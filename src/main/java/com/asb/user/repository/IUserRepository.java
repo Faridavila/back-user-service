@@ -82,6 +82,51 @@ public interface IUserRepository extends JpaRepository<EntityUser, Long> {
             @Param("terminalId") Long terminalId
     );
 
+    @Query(value = "SELECT new com.asb.user.model.dto.UserResponsiveDto(" +
+            "u.id, u.name, u.login, u.password, u.email, r.name, p.description, " +
+            "c.companyName, a.description, u.phone, u.status) " +
+            "FROM EntityUser u " +
+            "JOIN EntityRol r ON u.rolId = r.id " +
+            "JOIN EntityPosition p ON u.positionId = p.id " +
+            "JOIN EntityCompany c ON u.companyId = c.id " +
+            "JOIN EntityArea a ON u.areaId = a.id " +
+            "WHERE u.status = 'ACTIVE' " +
+            "AND (CAST(u.id AS string) LIKE :id " +
+            "OR UPPER(u.name) LIKE UPPER(:userName) " +
+            "OR UPPER(u.email) LIKE UPPER(:email) " +
+            "OR UPPER(u.login) LIKE UPPER(:login) " +
+            "OR u.phone LIKE :phone " +
+            "OR UPPER(c.companyName) LIKE UPPER(:companyName) " +
+            "OR UPPER(p.description) LIKE UPPER(:positionDescription) " +
+            "OR UPPER(a.description) LIKE UPPER(:areaDescription) " +
+            "OR UPPER(r.name) LIKE UPPER(:rolName))",
+            countQuery = "SELECT COUNT(u) " +
+                    "FROM EntityUser u " +
+                    "JOIN EntityRol r ON u.rolId = r.id " +
+                    "JOIN EntityPosition p ON u.positionId = p.id " +
+                    "JOIN EntityCompany c ON u.companyId = c.id " +
+                    "JOIN EntityArea a ON u.areaId = a.id " +
+                    "WHERE u.status = 'ACTIVE' " +
+                    "AND (CAST(u.id AS string) LIKE :id " +
+                    "OR UPPER(u.name) LIKE UPPER(:userName) " +
+                    "OR UPPER(u.email) LIKE UPPER(:email) " +
+                    "OR UPPER(u.login) LIKE UPPER(:login) " +
+                    "OR u.phone LIKE :phone " +
+                    "OR UPPER(c.companyName) LIKE UPPER(:companyName) " +
+                    "OR UPPER(p.description) LIKE UPPER(:positionDescription) " +
+                    "OR UPPER(a.description) LIKE UPPER(:areaDescription) " +
+                    "OR UPPER(r.name) LIKE UPPER(:rolName))")
+    Page<UserResponsiveDto> searchFiltered(
+            @Param("id") String id,
+            @Param("userName") String userName,
+            @Param("email") String email,
+            @Param("login") String login,
+            @Param("phone") String phone,
+            @Param("companyName") String companyName,
+            @Param("positionDescription") String positionDescription,
+            @Param("areaDescription") String areaDescription,
+            @Param("rolName") String rolName,
+            Pageable pageable);
 
     Page<EntityUser> findByStatus(String status, Pageable pageable);
 

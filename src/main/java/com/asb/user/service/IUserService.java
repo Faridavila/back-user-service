@@ -32,7 +32,7 @@ public interface IUserService {
 
     List<GgpUserGetAllDto> getAllRolByUser(Map<String, String> customQuery);
 
-    Page<GgpUserGetAllDto> searchCustom(Map<String, String> customQuery);
+    Page<UserResponsiveDto> searchCustom(Map<String, String> customQuery);
 
     ForgotPasswordUserDto forgotPassword(GgpForgotPasswordDto ggpForgotPasswordDto) throws UnirestException;
 }
