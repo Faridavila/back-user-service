@@ -329,8 +329,8 @@ public class UserServiceImpl implements IUserService {
         String login = null;
         String phone = null;
         String companyName = null;
-        String positionDescription = null;
-        String areaDescription = null;
+        String positionName = null;
+        String areaName = null;
         String rolName = null;
 
         // Parámetros de paginación y ordenamiento
@@ -384,11 +384,11 @@ public class UserServiceImpl implements IUserService {
         }
 
         if (customQuery.containsKey("positionName")) {
-            positionDescription = "%" + customQuery.get("positionName") + "%";
+            positionName = "%" + customQuery.get("positionName") + "%";
         }
 
         if (customQuery.containsKey("areaName")) {
-            areaDescription = "%" + customQuery.get("areaName") + "%";
+            areaName = "%" + customQuery.get("areaName") + "%";
         }
 
         if (customQuery.containsKey("rolName")) {
@@ -406,8 +406,8 @@ public class UserServiceImpl implements IUserService {
                 login,
                 phone,
                 companyName,
-                positionDescription,
-                areaDescription,
+                positionName,
+                areaName,
                 rolName,
                 pagingSort
         );

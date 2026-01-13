@@ -97,8 +97,8 @@ public interface IUserRepository extends JpaRepository<EntityUser, Long> {
             "OR UPPER(u.login) LIKE UPPER(:login) " +
             "OR u.phone LIKE :phone " +
             "OR UPPER(c.companyName) LIKE UPPER(:companyName) " +
-            "OR UPPER(p.description) LIKE UPPER(:positionDescription) " +
-            "OR UPPER(a.description) LIKE UPPER(:areaDescription) " +
+            "OR UPPER(p.description) LIKE UPPER(:positionName) " +
+            "OR UPPER(a.description) LIKE UPPER(:areaName) " +
             "OR UPPER(r.name) LIKE UPPER(:rolName))",
             countQuery = "SELECT COUNT(u) " +
                     "FROM EntityUser u " +
@@ -113,8 +113,8 @@ public interface IUserRepository extends JpaRepository<EntityUser, Long> {
                     "OR UPPER(u.login) LIKE UPPER(:login) " +
                     "OR u.phone LIKE :phone " +
                     "OR UPPER(c.companyName) LIKE UPPER(:companyName) " +
-                    "OR UPPER(p.description) LIKE UPPER(:positionDescription) " +
-                    "OR UPPER(a.description) LIKE UPPER(:areaDescription) " +
+                    "OR UPPER(p.description) LIKE UPPER(:positionName) " +
+                    "OR UPPER(a.description) LIKE UPPER(:areaName) " +
                     "OR UPPER(r.name) LIKE UPPER(:rolName))")
     Page<UserResponsiveDto> searchFiltered(
             @Param("id") String id,
@@ -123,8 +123,8 @@ public interface IUserRepository extends JpaRepository<EntityUser, Long> {
             @Param("login") String login,
             @Param("phone") String phone,
             @Param("companyName") String companyName,
-            @Param("positionDescription") String positionDescription,
-            @Param("areaDescription") String areaDescription,
+            @Param("positionName") String positionDescription,
+            @Param("areaName") String areaDescription,
             @Param("rolName") String rolName,
             Pageable pageable);
 

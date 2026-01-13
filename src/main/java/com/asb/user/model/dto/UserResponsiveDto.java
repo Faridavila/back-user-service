@@ -15,9 +15,9 @@ public class UserResponsiveDto {
     private String password;
     private String email;
     private String rolName;
-    private String positionDescription;
+    private String positionName;
     private String companyName;
-    private String areaDescription;
+    private String areaName;
     private String phone;
     private String status;
 }
