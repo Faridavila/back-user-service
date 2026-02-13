@@ -32,6 +32,7 @@ public class UserDto {
     private Date tokenDateExpired;
     private String token;
     private String status;
+    private List<PermissionListDto> permissions;
 
     public UserDto() {
     }

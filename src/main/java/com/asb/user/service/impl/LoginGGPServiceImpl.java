@@ -4,6 +4,7 @@ import com.asb.user.exception.CustomErrorException;
 import com.asb.user.model.IN.LoginIn;
 import com.asb.user.model.OUT.LoginOut;
 import com.asb.user.model.dto.AbilityDto;
+import com.asb.user.model.dto.PermissionListDto;
 import com.asb.user.model.dto.UserDto;
 import com.asb.user.model.entity.*;
 import com.asb.user.repository.*;
@@ -23,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -30,17 +32,11 @@ import java.util.Optional;
 public class LoginGGPServiceImpl implements ILoginGGPService {
 
     private final IUserRepository iRepository;
-
     private final IRolRepository iRolRepository;
-
     private final ICompanyRepository iCompanyRepository;
-
     private final IAreaRepository iAreaRepository;
-
     private final IPositionRepository iPositionRepository;
-
     private final JwtUtil jwtUtil;
-
     private final Utils utils;
 
     private final long EXPIRATION_TIME_LONG = 100_000_000;
@@ -86,9 +82,12 @@ public class LoginGGPServiceImpl implements ILoginGGPService {
 
     private UserDto mapUserDto(Optional<EntityUser> objectOptional) {
         EntityUser user = objectOptional.get();
-        String rolName = iRolRepository.findById(user.getRolId())
-                .map(EntityRol::getName)
-                .orElse("Sin rol");
+
+        // 🔥 OBTENER EL ROL COMPLETO CON PERMISOS
+        EntityRol rol = iRolRepository.findById(user.getRolId())
+                .orElse(null);
+
+        String rolName = rol != null ? rol.getName() : "Sin rol";
 
         String positionName = iPositionRepository.findById(user.getPositionId())
                 .map(EntityPosition::getDescription)
@@ -105,6 +104,18 @@ public class LoginGGPServiceImpl implements ILoginGGPService {
         String areaName = iAreaRepository.findById(user.getAreaId())
                 .map(EntityArea::getDescription)
                 .orElse("Sin área");
+
+        // 🔥 MAPEAR PERMISOS DEL ROL
+        List<PermissionListDto> permissions = new ArrayList<>();
+        if (rol != null && rol.getPermissions() != null) {
+            permissions = rol.getPermissions().stream()
+                    .map(perm -> PermissionListDto.builder()
+                            .permissionId(perm.getId())
+                            .permissionName(perm.getName())
+                            .permissionPath(perm.getPath())
+                            .build())
+                    .collect(Collectors.toList());
+        }
 
         return UserDto.builder()
                 .id(user.getId())
@@ -123,7 +134,7 @@ public class LoginGGPServiceImpl implements ILoginGGPService {
                 .areaName(areaName)
                 .phone(user.getPhone())
                 .status(user.getStatus())
+                .permissions(permissions)
                 .build();
     }
-
 }
